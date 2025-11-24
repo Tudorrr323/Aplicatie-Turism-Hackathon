@@ -15,21 +15,18 @@ interface CardProps {
 
 const LocationCard: React.FC<CardProps> = ({ location }) => {
     return (
-        <Link 
-            href={`/locations/${location.id}`} 
-            asChild 
-        >
-            <TouchableOpacity style={styles.card} activeOpacity={0.7}>
-                <Image 
-                    source={{ uri: location.image_url }} 
-                    style={styles.image} 
-                    // Am șters defaultSource pentru a evita eroarea de import
-                />
-                <View style={styles.info}>
-                    <Text style={styles.title} numberOfLines={1}>{location.name}</Text>
-                    <View style={styles.ratingContainer}>
-                        <FontAwesome name="star" color="#FFD700" size={12} style={{ marginRight: 4 }}/>
-                        <Text style={styles.ratingText}>{location.rating.toFixed(1)}</Text>
+        <Link href={`/locations/${location.id}`} asChild>
+            <TouchableOpacity style={styles.card} activeOpacity={0.9}>
+                <Image source={{ uri: location.image_url }} style={styles.image} />
+                
+                {/* Gradient overlay simulation via background opacity */}
+                <View style={styles.infoOverlay}>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.title} numberOfLines={1}>{location.name}</Text>
+                        <View style={styles.ratingContainer}>
+                            <FontAwesome name="star" color="#FFD700" size={12} />
+                            <Text style={styles.ratingText}>{location.rating}</Text>
+                        </View>
                     </View>
                 </View>
             </TouchableOpacity>
@@ -40,44 +37,31 @@ const LocationCard: React.FC<CardProps> = ({ location }) => {
 const styles = StyleSheet.create({
     card: {
         backgroundColor: '#fff',
-        borderRadius: 10,
-        overflow: 'hidden',
-        marginVertical: 8,
-        elevation: 5, 
-        shadowColor: '#000', 
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 6,
+        borderRadius: 20, // Colțuri mai rotunjite
+        marginBottom: 20,
+        height: 220, // Card mai înalt
+        shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 6,
     },
     image: {
-        width: '100%',
-        height: 140,
-        backgroundColor: '#eee',
+        width: '100%', height: '100%', borderRadius: 20,
     },
-    info: {
+    // Textul apare peste imagine, jos, cu un fundal alb semi-transparent sau solid
+    infoOverlay: {
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        backgroundColor: 'rgba(255,255,255,0.95)', // Glass effect simplu
         padding: 15,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
+        borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)'
     },
-    title: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        flexShrink: 1,
+    textContainer: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
     },
+    title: { fontSize: 18, fontWeight: '700', color: '#1C1C1E', flex: 1, marginRight: 10 },
     ratingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        borderRadius: 15,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#1C1C1E',
+        paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8
     },
-    ratingText: {
-        color: '#333',
-        fontWeight: 'bold',
-        fontSize: 12,
-    },
+    ratingText: { color: '#fff', fontWeight: 'bold', fontSize: 12, marginLeft: 4 },
 });
 
 export default LocationCard;

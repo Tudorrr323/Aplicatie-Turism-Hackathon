@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Button, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
-import { Link } from 'expo-router';
+// ... (Importuri) ...
+import { View, StyleSheet, TextInput, TouchableOpacity, FlatList, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import locations from '../../data/locations.json'; 
 import MapViewComponent from '../../components/MapViewComponent'; 
@@ -8,227 +8,144 @@ import LocationList from '../../components/LocationList';
 import { useNavigation, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-// --- INTERFEȚE ---
-interface Coordinates {
-    lat: number;
-    long: number;
-}
-// 💡 NOTĂ: Am eliminat "id: number" din interfața de bază pentru că nu e în JSON
-interface JsonLocationItem {
-    name: string;
-    address: string;
-    coordinates: Coordinates;
-    image_url: string;
-    short_description: string;
-    rating: number;
-}
-// 💡 NOU: Definirea structurii complete, inclusiv ID-ul adăugat
-interface LocationItem extends JsonLocationItem {
-    id: number; 
-}
-
-// 💡 CORECTARE: Adaugă ID-ul (indexul) la fiecare obiect după import
-const locationData: LocationItem[] = (locations as JsonLocationItem[]).map((loc, index) => ({
-    ...loc,
-    id: index, // Adaugă ID-ul bazat pe index
-}));
+// ... (Interfețe și locationData la fel) ...
+interface Coordinates { lat: number; long: number; }
+interface JsonLocationItem { name: string; address: string; coordinates: Coordinates; image_url: string; short_description: string; rating: number; }
+interface LocationItem extends JsonLocationItem { id: number; }
+const locationData: LocationItem[] = (locations as JsonLocationItem[]).map((loc, index) => ({ ...loc, id: index }));
 
 const ExplorePage = () => {
-  const [isMapView, setIsMapView] = useState(true); 
-  const [searchTerm, setSearchTerm] = useState(''); 
-  
-  // 💡 CORECȚIE FINALĂ: MUTĂ CALCULUL filteredLocations AICI, DUPĂ useState
+  const [isMapView, setIsMapView] = useState(true); 
+  const [searchTerm, setSearchTerm] = useState(''); 
+  
+  // 💡 NOU: State pentru focus
+  const [focusedLocationId, setFocusedLocationId] = useState<number | null>(null);
+
   const filteredLocations = locationData.filter(location => 
     location.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     location.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  // showSuggestions folosește filteredLocations, care e definit acum
-  const showSuggestions = searchTerm.length > 0 && filteredLocations.length > 0;
-  
-  const navigation = useNavigation();
-  const router = useRouter(); // 💡 Adaugă useRouter
+  const showSuggestions = searchTerm.length > 0 && filteredLocations.length > 0;
+  const navigation = useNavigation();
+  const router = useRouter(); 
 
-  const toggleView = () => {
-    setIsMapView(prev => !prev);
-  };
+  const toggleView = () => { setIsMapView(prev => !prev); };
 
-  useEffect(() => {
-      navigation.setOptions({
-          headerShown: true, 
-          headerTitle: isMapView ? 'Explorează pe Hartă' : 'Feed Locații',
-          headerRight: () => (
-              <Button 
-                  title={isMapView ? "Listă" : "Hartă"}
-                  onPress={toggleView}
-                  color="#007AFF"
-              />
-          ),
-          headerStyle: { backgroundColor: '#fff' },
-          headerTitleStyle: { fontWeight: 'bold' }
-      });
-  }, [navigation, isMapView]);
+  useEffect(() => { navigation.setOptions({ headerShown: false }); }, [navigation]);
   
   const renderSuggestionItem = ({ item }: { item: LocationItem }) => (
-    <TouchableOpacity 
-      style={styles.suggestionItem} 
-      onPress={() => {
-        setSearchTerm(item.name); 
-        router.push(`/locations/${item.id}`); 
-      }}
-    >
-        {/* 💡 SOLUȚIA FINALĂ: Unificăm totul într-un singur bloc <Text> */}
-        <Text style={styles.suggestionTextWrapper}>
-            {/* Ionicons cu spațiu pe dreapta (marginRight) */}
-            <Ionicons name="location-outline" size={16} color="#444" style={{ marginRight: 10 }} />
-            
-            {/* Textul alăturat direct, fără spații în JSX */}
-            {item.name} 
-        </Text>
-    </TouchableOpacity>
-  );
+    <TouchableOpacity 
+      style={styles.suggestionItem} 
+      onPress={() => {
+        // 💡 LOGICA NOUĂ: 
+        // 1. Setează textul
+        setSearchTerm(item.name); 
+        // 2. Dacă suntem pe hartă, ne focusăm pe pin
+        if (isMapView) {
+            setFocusedLocationId(item.id);
+            // Golim search-ul vizual din listă ca să vedem harta, dar păstrăm pin-ul focusat
+            // setSearchTerm(''); // Opțional, dacă vrei să dispară dropdown-ul imediat
+        } else {
+            // Dacă suntem pe listă, mergem la detalii direct
+            router.push(`/locations/${item.id}`);
+        }
+      }}
+    >
+        <View style={styles.suggestionContentWrapper}> 
+            <Ionicons name="location" size={18} color="#007AFF" style={{ marginRight: 10 }} />
+            <Text style={styles.suggestionText} numberOfLines={1}>{item.name}</Text>
+        </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      
-      {/* 1. BARA DE CĂUTARE (FIXATĂ SUS) */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Caută după nume sau adresă..."
-            placeholderTextColor="#888"
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            clearButtonMode="while-editing" 
-          />
-          <TouchableOpacity onPress={() => setSearchTerm('')} style={styles.searchIcon}>
-            <Ionicons name="search" size={24} color="#888" /> 
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      {/* 2. SUGGESTIONS DROPDOWN (Randat în afara containerului principal) */}
-      {showSuggestions && (
-          <FlatList
-            style={styles.suggestionsDropdown}
-            data={filteredLocations}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={renderSuggestionItem}
-            keyboardShouldPersistTaps="always"
-          />
-      )}
-      
-      {/* 3. CONTAINERUL PRINCIPAL (Contine Harta/Lista) */}
-      <View style={styles.container}>
-        
-        {/* HARTA/LISTA (O SINGURĂ DATĂ) */}
-        {isMapView ? (
-          <MapViewComponent locations={filteredLocations} />
-        ) : (
-          <LocationList locations={filteredLocations} />
-        )}
-        
-        {/* Mesaj dacă nu există rezultate */}
-        {!showSuggestions && filteredLocations.length === 0 && searchTerm.length > 0 && (
-            <View style={styles.noResults}>
-                <Text style={styles.noResultsText}>Nu s-au găsit locații pentru "{searchTerm}".</Text>
-            </View>
-        )}
-      </View>
-    </SafeAreaView>
-  );
+    <View style={{flex: 1, backgroundColor: '#F5F7FA'}}>
+      <SafeAreaView edges={['top']} style={{backgroundColor: 'transparent'}} />
+
+      {/* 1. HEADER PLUTITOR */}
+      <View style={styles.floatingHeader}>
+        <View style={styles.searchBarRow}>
+            <View style={styles.searchInputWrapper}>
+                <Ionicons name="search" size={20} color="#8E8E93" style={{ marginLeft: 10 }} />
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Caută locații..."
+                    placeholderTextColor="#8E8E93"
+                    value={searchTerm}
+                    onChangeText={(text) => {
+                        setSearchTerm(text);
+                        setFocusedLocationId(null); // Resetăm focusul când scriem
+                    }}
+                    clearButtonMode="while-editing" 
+                />
+                {searchTerm.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchTerm('')} style={{padding: 5}}>
+                        <Ionicons name="close-circle" size={18} color="#8E8E93" />
+                    </TouchableOpacity>
+                )}
+            </View>
+            <TouchableOpacity onPress={toggleView} style={styles.toggleButton}>
+                <Ionicons name={isMapView ? "list" : "map"} size={22} color="#fff" />
+            </TouchableOpacity>
+        </View>
+
+        {/* 2. SUGGESTIONS (Doar dacă nu avem deja un focus activ pe hartă) */}
+        {showSuggestions && focusedLocationId === null && (
+            <View style={styles.suggestionsWrapper}>
+                <FlatList
+                    data={filteredLocations}
+                    keyExtractor={(item) => String(item.id)}
+                    renderItem={renderSuggestionItem}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                />
+            </View>
+        )}
+      </View>
+
+      {/* 3. CONTENT */}
+      <View style={styles.contentContainer}>
+        {isMapView ? (
+          <MapViewComponent 
+            locations={locationData} // Trimitem TOATE locațiile (să rămână pinii)
+            focusedLocationId={focusedLocationId} // Trimitem ID-ul pentru focus/zoom
+          />
+        ) : (
+          <LocationList locations={filteredLocations} />
+        )}
+      </View>
+
+    </View>
+  );
 };
 
+// ... (Stilurile rămân la fel ca în versiunea anterioară funcțională) ...
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
-  container: { 
-      flex: 1,
-      // 💡 ADAUGĂ MARGIN TOP pentru a evita ca harta să fie sub searchbar
-      marginTop: 80, // Ajustează valoarea în funcție de înălțimea searchbar-ului
-  },
-  
-  // 💡 STILURI NOI PENTRU SEARCHBAR FIXAT SUS
-  searchContainer: {
-    position: 'absolute', // Poziționare absolută
-    top: 0, // Lipit de sus
-    left: 0, 
-    right: 0,
-    zIndex: 10, // Asigură că bara este deasupra hărții
-    padding: 10, // Padding intern
-    paddingTop: 40, // 💡 Ajustat pentru a trece peste status bar-ul telefonului
-    backgroundColor: '#fff', 
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    elevation: 3, // Umbră subtilă pentru Android
-    shadowColor: '#000', // Umbră subtilă pentru iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
+  floatingHeader: { position: 'absolute', top: 50, left: 20, right: 20, zIndex: 100 },
+  searchBarRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   searchInputWrapper: {
-    flexDirection: 'row', // Aliniază input-ul și iconița pe aceeași linie
-    alignItems: 'center', // Centrează vertical
-    backgroundColor: '#f5f5f5',
-    borderRadius: 25, // Rază mai mare pentru un aspect modern
-    paddingHorizontal: 15,
-    height: 50, // Înălțime fixă pentru wrapper
+    flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    borderRadius: 25, height: 50, marginRight: 10, paddingHorizontal: 5,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 8,
   },
-  searchInput: {
-    flex: 1, // Permite input-ului să ocupe tot spațiul disponibil
-    fontSize: 16,
-    color: '#333',
-    paddingVertical: 0, // Elimină padding-ul vertical implicit
+  searchInput: { flex: 1, fontSize: 16, color: '#1C1C1E', paddingHorizontal: 10, height: '100%' },
+  toggleButton: {
+      width: 50, height: 50, borderRadius: 25, backgroundColor: '#007AFF',
+      justifyContent: 'center', alignItems: 'center',
+      shadowColor: '#007AFF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8,
   },
-  searchIcon: {
-    marginLeft: 10, // Spațiu între input și iconiță
-    padding: 5, // Zona de tap pentru iconiță
+  suggestionsWrapper: {
+    marginTop: 10, backgroundColor: '#fff', borderRadius: 16, maxHeight: 220,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20, elevation: 10,
+    overflow: 'hidden'
   },
-  noResults: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 20,
-      position: 'absolute',
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      zIndex: 10,
-  },
-  noResultsText: {
-      fontSize: 18,
-      color: '#888',
-  },
-  suggestionsDropdown: {
-    position: 'absolute',
-    // 💡 CORECȚIE: Setează TOP-ul la înălțimea barei de căutare. 
-    // Valoarea de 100-110px este sigură.
-    top: 110, // Aici se va începe să randeze
-    left: 10, // Aliniează-l cu padding-ul de 10 din searchContainer
-    right: 10,
-    zIndex: 11, // 💡 NOU: Trebuie să fie deasupra tuturor (inclusiv searchContainer)
-    maxHeight: 300, 
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#eee',
-    shadowOpacity: 0.2,
-    elevation: 5,
-},
-suggestionItem: {
-    padding: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
-    backgroundColor: '#fff',
-},
-suggestionTextWrapper: {
-    fontSize: 16,
-    color: '#333',
-},
+  suggestionItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#F2F2F7' },
+  suggestionContentWrapper: { flexDirection: 'row', alignItems: 'center' },
+  suggestionText: { fontSize: 15, color: '#1C1C1E', marginLeft: 10, fontWeight: '500', flex: 1 },
+  contentContainer: { flex: 1 }, 
+  noResults: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 0 },
+  noResultsText: { marginTop: 10, color: '#8E8E93', fontSize: 16 },
 });
 
 export default ExplorePage;
