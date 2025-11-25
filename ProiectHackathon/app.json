@@ -7,7 +7,6 @@
     "icon": "./assets/images/logo.png",
     "scheme": "proiecthackathon",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/logo.png",
       "resizeMode": "contain",
@@ -18,22 +17,32 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "package": "com.tudorrrr.topplaces",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCfYr-f5HKPla1nMeWWM5A2EMH64tldILI"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logo.png"
     },
     "plugins": [
       "expo-router"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "44b9bfeb-623e-4354-b2e7-a506fe64f663"
+      }
     }
   }
 }

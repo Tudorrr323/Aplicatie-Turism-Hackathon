@@ -118,14 +118,20 @@ const ProfilePage = () => {
     const fileName = `${session.user.id}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    const formData = new FormData();
-    formData.append('file', {
+    // Construim corect FormData pentru React Native
+    const formData = new FormData(); 
+    formData.append('file', { 
       uri,
       name: fileName,
       type: `image/${fileExt}`,
     } as any);
 
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, formData, { upsert: true });
+    // Încărcăm fișierul folosind fetch pentru a putea seta header-ul corect
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, formData, {
+        upsert: true, // Suprascrie fișierul dacă există deja
+      });
 
     if (uploadError) {
       Alert.alert('Eroare la încărcare', uploadError.message);
@@ -136,6 +142,9 @@ const ProfilePage = () => {
     const publicUrl = `${data.publicUrl}?t=${new Date().getTime()}`;
 
     // Actualizăm metadatele utilizatorului cu noua adresă URL a avatarului
+    // Forțăm reîmprospătarea sesiunii pentru a ne asigura că token-ul este valid
+    await supabase.auth.refreshSession();
+
     const { error: updateError } = await supabase.auth.updateUser({
       data: { ...user.user_metadata, avatar_url: publicUrl }
     });
@@ -173,7 +182,10 @@ const ProfilePage = () => {
         <Text style={styles.subtitle}>{user.email}</Text>
         {user.user_metadata.birth_date && <Text style={styles.text}>Data nașterii: {new Date(user.user_metadata.birth_date).toLocaleDateString('ro-RO')}</Text>}
         <Text style={styles.text}>Membru din: {new Date(user.created_at).toLocaleDateString('ro-RO')}</Text>
-        <TouchableOpacity style={styles.button} onPress={() => signOut()}>
+        <TouchableOpacity style={styles.button} onPress={async () => {
+          await signOut();
+          router.replace('/explore'); // Redirecționează la ecranul principal după deconectare
+        }}>
           <Text style={styles.buttonText}>Deconectare</Text>
         </TouchableOpacity>
       </View>

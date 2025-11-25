@@ -25,11 +25,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
+    // Forțăm ștergerea sesiunii la pornirea aplicației pentru a afișa mereu formularul de login/signup
+    supabase.auth.signOut();
+    setData(null);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setData(session);
     });
-
-    supabase.auth.getSession().then(({ data: { session } }) => setData(session));
 
     return () => subscription.unsubscribe();
   }, [setData]);
