@@ -8,12 +8,13 @@ import { Colors } from '../constants/Colors';
 
 interface Coordinates { lat: number; long: number; }
 interface LocationItem { id: number; name: string; address: string; coordinates: Coordinates; short_description: string; rating: number; image_url: string; }
-interface MapProps { locations: LocationItem[]; focusedLocationId?: number | null; }
+interface CityItem { name: string; coordinates: Coordinates; }
+interface MapProps { locations: LocationItem[]; focusedLocationId?: number | null; focusedCity?: CityItem | null; }
 
 // URL-uri pentru tile-urile hărții
 const GOOGLE_MAPS_URL = "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}";
 
-const MapViewComponent: React.FC<MapProps> = ({ locations, focusedLocationId }) => {
+const MapViewComponent: React.FC<MapProps> = ({ locations, focusedLocationId, focusedCity }) => {
     const router = useRouter();
     const mapRef = useRef<MapView>(null);
     const colorScheme = useColorScheme();
@@ -33,11 +34,22 @@ const MapViewComponent: React.FC<MapProps> = ({ locations, focusedLocationId }) 
     }, [focusedLocationId]);
 
     useEffect(() => {
+        if (focusedCity) {
+            setSelectedLocation(null); // Ascunde cardul de locație dacă un oraș este selectat
+            mapRef.current?.animateCamera({ center: { latitude: focusedCity.coordinates.lat, longitude: focusedCity.coordinates.long }, zoom: 12, pitch: 0, heading: 0 }, { duration: 1500 });
+        }
+    }, [focusedCity]);
+
+    useEffect(() => {
         (async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status === 'granted') {
                 let location = await Location.getCurrentPositionAsync({});
                 setUserLocation(location);
+                // Centrează harta pe locația utilizatorului la prima încărcare
+                if (mapRef.current) {
+                    mapRef.current.animateToRegion({ latitude: location.coords.latitude, longitude: location.coords.longitude, latitudeDelta: 0.09, longitudeDelta: 0.04 });
+                }
             }
         })();
     }, []);
@@ -142,7 +154,7 @@ const styles = StyleSheet.create({
     pinContainer: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#EA4335', elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1 },
     selectedPinContainer: { backgroundColor: '#EA4335', borderColor: '#fff', transform: [{ scale: 1.1 }], zIndex: 10 },
     pinText: { fontSize: 10, fontWeight: 'bold', color: '#333' },
-    gpsButton: { position: 'absolute', right: 20, width: 45, height: 45, borderRadius: 25, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3, elevation: 5 },
+    gpsButton: { position: 'absolute', left: 20, width: 45, height: 45, borderRadius: 25, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3, elevation: 5 },
     miniCardContainer: { position: 'absolute', bottom: 30, left: 20, right: 20, zIndex: 100 },
     miniCardWrapper: { flexDirection: 'row', borderRadius: 16, padding: 10, shadowColor: "#000", shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 10, alignItems: 'center' },
     miniCardContent: { flex: 1, flexDirection: 'row', alignItems: 'center' },

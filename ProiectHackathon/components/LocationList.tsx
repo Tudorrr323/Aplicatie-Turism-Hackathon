@@ -8,9 +8,13 @@ interface Coordinates { lat: number; long: number; }
 interface LocationItem { id: number; name: string; address: string; coordinates: Coordinates; image_url: string; short_description: string; rating: number; }
 
 // Definirea proprietăților pe care le primește componenta
-interface ListProps { locations: LocationItem[]; }
+interface ListProps {
+    locations: LocationItem[];
+    showSuggestions?: boolean; // Proprietate opțională pentru a controla afișarea sugestiilor
+}
 
-const LocationList: React.FC<ListProps> = ({ locations }) => {
+// Valoarea implicită pentru showSuggestions este true
+const LocationList: React.FC<ListProps> = ({ locations, showSuggestions = true }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
 
@@ -24,15 +28,18 @@ const LocationList: React.FC<ListProps> = ({ locations }) => {
             keyExtractor={(item) => String(item.id)} // Un identificator unic pentru fiecare element
             showsVerticalScrollIndicator={false} // Ascunde bara de derulare
             contentContainerStyle={styles.contentContainer} // Stilul pentru containerul interior al listei
-            // ListHeaderComponent adaugă un titlu deasupra listei
-            ListHeaderComponent={() => (
-                <View style={styles.header}>
-                    <Text style={[styles.headerTitle, { color: theme.text }]}>Locații apropiate</Text>
-                    <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-                        {locations.length} rezultate
-                    </Text>
-                </View>
-            )}
+            // ListHeaderComponent adaugă un titlu deasupra listei, doar dacă showSuggestions este true
+            ListHeaderComponent={() => {
+                if (!showSuggestions) return null; // Nu randa nimic dacă showSuggestions este false
+                return (
+                    <View style={styles.header}>
+                        <Text style={[styles.headerTitle, { color: theme.text }]}>Locații apropiate</Text>
+                        <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
+                            {locations.length} rezultate
+                        </Text>
+                    </View>
+                );
+            }}
         />
     );
 };
