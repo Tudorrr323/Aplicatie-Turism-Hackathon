@@ -1,6 +1,8 @@
 # Aplicație Turism Hackathon (Top Places)
 
-Aceasta este o aplicație mobilă de turism dezvoltată în cadrul unui Hackathon, menită să ajute utilizatorii (în special studenții și turiștii) să descopere locații interesante precum restaurante, cafenele și obiective turistice.
+Această aplicație a fost realizată în cadrul Hackathon-ului organizat de **Thecon** în data de **24.11.2025**, fiind dezvoltată integral într-un interval de doar **13 ore**.
+
+Este o aplicație mobilă de turism menită să ajute utilizatorii (în special studenții și turiștii) să descopere locații interesante precum restaurante, cafenele și obiective turistice.
 
 Aplicația oferă o experiență modernă, integrând hărți interactive, traduceri automate și descrieri generate de AI pentru a oferi un "vibe" al locului.
 
