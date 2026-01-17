@@ -17,6 +17,23 @@ Aplicația oferă o experiență modernă, integrând hărți interactive, tradu
 *   **Filtrare**: Posibilitatea de a filtra locațiile în funcție de preferințe.
 *   **Profil Utilizator**: Secțiune pentru administrarea profilului (integrare posibilă cu Supabase).
 
+## 📸 Galerie Foto
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+  <img src="./Poze/Screenshot_20251127_113512_Top Places.jpg" alt="Screenshot 1" width="30%">
+  <img src="./Poze/Screenshot_20251127_113517_Top Places.jpg" alt="Screenshot 2" width="30%">
+  <img src="./Poze/Screenshot_20251127_113523_Top Places.jpg" alt="Screenshot 3" width="30%">
+  <img src="./Poze/Screenshot_20251127_113530_Top Places.jpg" alt="Screenshot 4" width="30%">
+  <img src="./Poze/Screenshot_20251127_113617_Top Places.jpg" alt="Screenshot 5" width="30%">
+  <img src="./Poze/Screenshot_20251127_113627_Top Places.jpg" alt="Screenshot 6" width="30%">
+  <img src="./Poze/Screenshot_20251127_113636_Top Places.jpg" alt="Screenshot 7" width="30%">
+  <img src="./Poze/Screenshot_20251127_113641_Top Places.jpg" alt="Screenshot 8" width="30%">
+  <img src="./Poze/Screenshot_20251127_113654_Top Places.jpg" alt="Screenshot 9" width="30%">
+  <img src="./Poze/Screenshot_20251127_113657_Top Places.jpg" alt="Screenshot 10" width="30%">
+  <img src="./Poze/Screenshot_20251127_113732_Top Places.jpg" alt="Screenshot 11" width="30%">
+  <img src="./Poze/Screenshot_20251127_114134_Top Places.jpg" alt="Screenshot 12" width="30%">
+</div>
+
 ## 🛠️ Tehnologii Utilizate
 
 *   **Framework**: [React Native](https://reactnative.dev/) cu [Expo](https://expo.dev/) (SDK 54).
